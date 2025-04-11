@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: config-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: config-server
+  template:
+    metadata:  # Added missing metadata with labels
+      labels:
+        app: config-server
+    spec:
+      containers:
+        - name: config-server
+          image: rideshare/config-server
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8085
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "native"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: config-server
+spec:
+  type: NodePort
+  ports:
+    - port: 8085
+      targetPort: 8085
+      nodePort: 30888
+  selector:
+    app: config-server

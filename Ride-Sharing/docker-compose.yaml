@@ -1,0 +1,171 @@
+version: '3.8'
+
+services:
+  mysql-user-db:
+    image: mysql:8.0
+    container_name: mysql-user-db
+    environment:
+      MYSQL_ROOT_PASSWORD: Pass@123
+      MYSQL_DATABASE: ma_project
+    ports:
+      - "3307:3306"
+    volumes:
+      - user-mysql-data:/var/lib/mysql
+    networks:
+      - rideshare-network
+    restart: always
+
+  mysql-ride-db:
+    image: mysql:8.0
+    container_name: mysql-ride-db
+    environment:
+      MYSQL_ROOT_PASSWORD: Pass@123
+      MYSQL_DATABASE: ride_db
+    ports:
+      - "3308:3306"
+    volumes:
+      - ride-mysql-data:/var/lib/mysql
+    networks:
+      - rideshare-network
+    restart: always
+
+  mongo-payment-db:
+    image: mongo:latest
+    container_name: mongo-payment-db
+    environment:
+      MONGO_INITDB_DATABASE: microservices
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - rideshare-network
+    restart: always
+
+  config-server:
+    container_name: config-server
+    image: rideshare/config-server:latest
+    build:
+      context: ./ConfigServer
+    ports:
+      - "8085:8085"
+    networks:
+      - rideshare-network
+    environment:
+      - SPRING_APPLICATION_NAME=CONFIG-SERVER
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_URI=https://github.com/kaustubmule/ridesharing-config
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_CLONE-ON-START=true
+    restart: always
+
+  eureka-server:
+    container_name: eureka-server
+    image: rideshare/eureka-server:latest
+    build:
+      context: ./EurekaServer
+    ports:
+      - "8761:8761"
+    depends_on:
+      - config-server
+    networks:
+      - rideshare-network
+    environment:
+      - SPRING_APPLICATION_NAME=eureka-server
+      - EUREKA_CLIENT_REGISTER_WITH_EUREKA=false
+      - EUREKA_CLIENT_FETCH_REGISTRY=false
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8085
+    restart: always
+
+  api-gateway:
+    container_name: api-gateway
+    image: rideshare/api-gateway:latest
+    build:
+      context: ./ApiGateway
+    ports:
+      - "8084:8084"
+    depends_on:
+      - eureka-server
+      - config-server
+    networks:
+      - rideshare-network
+    environment:
+      - SPRING_APPLICATION_NAME=api-gateway
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8085
+    restart: always
+
+  user-service:
+    container_name: user-service
+    image: rideshare/user-service:latest
+    build:
+      context: ./UserService
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mysql-user-db
+      - eureka-server
+      - config-server
+    networks:
+      - rideshare-network
+    environment:
+      - SPRING_APPLICATION_NAME=user-service
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-user-db:3306/ma_project
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=Pass@123
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8085
+    restart: always
+
+  ride-service:
+    container_name: ride-service
+    image: rideshare/ride-service:latest
+    build:
+      context: ./RideService
+    ports:
+      - "8082:8082"
+    depends_on:
+      - mysql-ride-db
+      - eureka-server
+      - config-server
+    networks:
+      - rideshare-network
+    environment:
+      - SPRING_APPLICATION_NAME=ride-service
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-ride-db:3306/ride_db
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=Pass@123
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8085
+    restart: always
+
+  payment-service:
+    container_name: payment-service
+    image: rideshare/payment-service:latest
+    build:
+      context: ./PaymentService
+    ports:
+      - "8083:8083"
+    depends_on:
+      - mongo-payment-db
+      - eureka-server
+      - config-server
+    networks:
+      - rideshare-network
+    environment:
+      - SPRING_APPLICATION_NAME=payment-service
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo-payment-db:27017/microservices
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8085
+    restart: always
+
+networks:
+  rideshare-network:
+    driver: bridge
+
+volumes:
+  user-mysql-data:
+  ride-mysql-data:
+  mongo-data:
