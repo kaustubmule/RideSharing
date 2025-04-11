@@ -1,43 +1,71 @@
-# RideSharing
-microservices-based ride-sharing application. It comprises four main services:
+# Ride Sharing Microservices Project
 
-1. **User Service**
-    - Manages users (registration, authentication, roles)
-    - CRUD operations for `Users`
-    - Stores user details in MySQL/PostgreSQL
-    - API endpoints for user registration, login, and role management
-2. **Ride Service**
-    - Handles ride creation, status tracking
-    - CRUD operations for `Ride`
-    - Assigns drivers to rides
-    - Calculates ride distance
-3. **Driver Service**
-    - Manages driver details (vehicle, rating, payment method)
-    - CRUD operations for `Driver`
-    - API to fetch available drivers
-4. **Payment Service**
-    - Handles transactions and payments
-    - CRUD operations for `Payment`
-    - Processes payments for rides
+This project is a Ride Sharing Application built using Spring Boot Microservices architecture. It provides REST APIs for managing Rides and Payments.
 
-User Service
-| HTTP Method | Endpoint                  | Description                                     | Controller        |
-|------------|--------------------------|-----------------------------------------------|------------------|
-| POST       | /auth/login              | Authenticates a user and returns a token.     | LoginController  |
-| GET        | /api/users               | Retrieves a list of all users.                | UserController   |
-| POST       | /api/users               | Creates a new user.                           | UserController   |
-| GET        | /api/users/{id}          | Retrieves details of a specific user.         | UserController   |
-| DELETE     | /api/users/{id}          | Deletes a user by ID.                         | UserController   |
-| POST       | /api/users/{id}/book-ride| Allows a user to book a ride.                 | UserController   |
-| GET        | /api/users/{id}/driver   | Fetches assigned driver details for a user.   | UserController   |
-| GET        | /api/users/{id}/role     | Retrieves the role of a specific user.        | UserController   |
+---
 
+## Technologies Used
+- Java 17
+- Spring Boot
+- Spring Data JPA
+- MySQL
+- MongoDB
+- OpenFeign (Service Communication)
+- Eureka Server (Service Discovery)
+- Spring Cloud Config Server
+- Resilience4j (Fault Tolerance)
+- Docker & Docker Compose
 
+---
 
-Payment Service
-| HTTP Method | Endpoint                                      | Description                                                         | Controller         |
-|------------|----------------------------------------------|---------------------------------------------------------------------|-------------------|
-| POST       | /api/payments                               | Creates a new payment record.                                       | PaymentController |
-| GET        | /api/payments/{id}                         | Retrieves details of a specific payment by its ID.                  | PaymentController |
-| GET        | /api/payments/{paymentId}/passenger-payments | Fetches passenger payment details associated with the payment.      | PaymentController |
+## Microservices Structure
 
+### 1. Ride Service
+Handles Ride Management:
+- Create Ride
+- Get Ride by Id
+- Get All Rides
+- Update Ride
+- Update Ride Status
+
+#### Endpoints
+| Method | Endpoint | Description |
+|--------|-----------|-------------|
+| POST   | `/rides` | Create a new Ride and Payment |
+| GET    | `/rides` | Get all Rides |
+| GET    | `/rides/{rideId}` | Get Ride by RideId |
+| PUT    | `/rides/{rideId}` | Update Ride details |
+| PUT    | `/rides/{rideId}/status?status=value` | Update Ride Status (Ex: COMPLETED, CANCELLED) |
+
+---
+
+### 2. Payment Service
+Handles Payment Management:
+- Create Payment
+- Get Payments (All/User/Ride wise)
+- Update Payment Status
+
+#### Endpoints
+| Method | Endpoint | Description |
+|--------|-----------|-------------|
+| POST   | `/payments` | Create a new Payment |
+| GET    | `/payments` | Get all Payments |
+| GET    | `/payments/users/{userId}` | Get Payments by UserId |
+| GET    | `/payments/rides/{rideId}` | Get Payments by RideId |
+| PUT    | `/payments/{paymentId}/status?status=value` | Update Payment Status (Ex: SUCCESS, FAILED) |
+
+---
+
+## How To Run
+
+### Prerequisites
+- Java 17
+- Maven
+- MySQL & MongoDB running
+- Docker (optional for containerization)
+
+### Steps
+1. Clone the repo  
+```bash
+git clone [<repo-url>
+](https://github.com/kaustubmule/RideSharing)
