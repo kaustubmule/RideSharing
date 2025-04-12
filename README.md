@@ -15,6 +15,7 @@ This project is a Ride Sharing Application built using Spring Boot Microservices
 - Spring Cloud Config Server
 - Resilience4j (Fault Tolerance)
 - Docker & Docker Compose
+- Kubernetes
 
 ---
 
@@ -112,3 +113,6 @@ microservices → for Payment Service
 6. Test APIs
 Use Postman / Swagger UI to test all available endpoints.
 
+### Kubernetes:
+-Pushed kubernetes files to docker
+-pulled docker images from docker-desktop using kind
