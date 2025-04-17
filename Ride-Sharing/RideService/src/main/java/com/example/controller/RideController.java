@@ -26,16 +26,16 @@ public class RideController {
 
     @PostMapping
     public ResponseEntity<Ride> createRide(@RequestBody Ride ride) {
-        // Step 1: Create the ride and assign a driver
+
         Ride createdRide = rideService.createRide(ride);
 
-        // Step 2: Calculate fare based on distance (or other factors)
+
         double fare = rideService.calculateFare(createdRide);
 
-        // Step 3: Create payment for the ride
+
         Payment createdPayment = rideService.createPaymentForRide(createdRide, fare);
 
-        // Step 4: If payment is successful, update the ride with payment info
+
         if (createdPayment != null && createdPayment.getPaymentId() != null) {
             createdRide.setPaymentId(createdPayment.getPaymentId());
             Ride updatedRideWithPayment = rideService.updateRide(createdRide.getRideId(), createdRide);
@@ -60,16 +60,16 @@ public class RideController {
 
     @PutMapping("/{rideId}/status")
     public ResponseEntity<Ride> updateRideStatus(
-            @PathVariable String rideId,           // Ride ID from path parameter
+            @PathVariable String rideId,
             @RequestParam("status") RideStatus status // Status will be passed as a query parameter
     ) {
         // Update the status of the ride
         Ride updatedRide = rideService.updateRideStatus(rideId, status);
 
         if (updatedRide != null) {
-            return ResponseEntity.ok(updatedRide); // Return updated ride if the operation was successful
+            return ResponseEntity.ok(updatedRide);
         } else {
-            return ResponseEntity.notFound().build(); // Handle the case if the ride is not found
+            return ResponseEntity.notFound().build();
         }
     }
 
